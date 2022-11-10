@@ -1,0 +1,34 @@
+#### Stručně odpovězte na následující otázky: ######
+
+1. Proč je nutné určovat, zda má výpočet pokračovat?
+==============================================================================
+Pre možnosť ukončenia výpočtu skôr v prípade že už všetky hodnoty spĺňajú uvedenú
+podmienku. Urýchlime tak dobu výpočtu.
+
+
+2. Byla "Line" vektorizace efektivní? Proč?
+==============================================================================
+Nie je efektívnešia ako batch no je efektívnejšia ako ref.
+Dôvod je opísaný v odpovedi 5.
+
+
+
+3. Jaká byla dosažena výkonnost v Intel Advisoru pro jednotlivé implementace 
+(v GFLOPS)?
+==============================================================================
+REF = 2,23
+BATCH = 14,62
+LINE = 21,84
+
+4. Jaká část kódu byla paralizována v "Line" implementaci? Vyčteme tuto 
+informaci i u batch kalkulátoru?
+==============================================================================
+Vektorizoval som všetky časti kódu kde som napĺňal pole hodnotami pre ďaľšie výpočty.
+Dalej sú zvektorizované výpočetné iterácie pre každý prvok matice / dlaždice.
+Ako posledný cyklus mám zvektorizovaný zápis vyrátaných hodnot z pomocného pola
+do výsledného pola dát.
+
+5. Co vyčteme z Roofline modelu pro obě vektorizované implementace?
+==============================================================================
+Line narozdiel od Batch pristupuje častejšie k L2 pamäti a to má za následok
+jej spomalenie. Batch kvôli iteráciam v rámci dlažíč pristupuje najmä k L1 pamäti.

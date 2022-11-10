@@ -1,0 +1,109 @@
+Architektury Výpočetních Systémů (AVS 2021)
+Projekt č. 2 (PMC)
+Login: xsesta06
+
+Úloha 1: Paralelizace původního řešení
+===============================================================================
+
+1) Kterou ze smyček (viz zadání) je vhodnější paralelizovat a co způsobuje 
+   neefektivitu paralelizaci té druhé?
+
+Vhodnejšie je paralelizovať smyčku priechodu mriežkou vo funkcií 'marchCubes',
+nakoľko táto smyčka sa volá na vyššej úrovni. 
+Neefektivitu paralelizaácie druhej smyčky spôsobuje funkcia evaluateFieldAt 
+ktorá je volaná vrácmi funkcie buildCube, a tá je volaná v prvej smyčke.
+Ak by sme paralelizovali túto smyčku, program by bežal na iba jednom procese.
+
+2) Jaké plánování (rozdělení práce mezi vlákna) jste zvolili a proč? 
+   Jaký vliv má velikost "chunk" při dynamickém plánování (8, 16, 32, 64)?
+
+Zvolil som dynamické plánovanie, nakoľko prevedenie iterácí normálne trvá rôzne
+časové úseky. Veľkosť chunku pri dynamickom plánovní prideľuje počet úloh
+jednotlivým vláknam. Pri volbe príliž veľkej veľkosti chunku sa vlákna preplňujú
+a ich vyťaženosť nieje rovnaká. Preto som po nakoniec zvolil veľkosť 32.
+
+3) Jakým způsobem zajišťujete ukládání trojúhelníků z několika vláken současně?
+
+Pre ukladanie trojuholníkov využívam kritickú sekciu. 
+
+
+
+Úloha 2: Paralelní průchod stromem
+===============================================================================
+
+1) Stručně popište použití OpenMP tasků ve vašem řešení.
+
+   Z funkcie 'marchCubes' je volaná funkcia 'evalTree' na ktorú je nastavená pragma
+   'single' tá zabezpečí že beh danej funkcie je pridelený iba jednému procesu. 
+   Následne 'evaltree' rozdelí priestor za pomoci for cyklov na 8 a každej časti
+   je pridelený vlastný task.
+
+2) Jakým způsobem jste realizovali sesbírání celkového počtu trojúhelníků?
+
+   Funkcia evalTree vola rekurzivne sama seba v zanorem cykluse forov.
+   Takto rekurzívne zanorená funkcia vracia počet trojuholníkov a vo svojom 
+   "rodičovi" (funkcií z kade bola volaná) pričíta vrátený počet k aktuálnemu.
+   Musel som pridať pragmu taskwait aby mohla výsledná hodnota prebublať
+   do hlavného procesu.
+
+3) Jaký vliv má na vaše řešení tzv. "cut-off"? Je vhodné vytvářet nový 
+   task pro každou krychli na nejnižší úrovni?
+
+   Cut-off na moje riešenie nemá žiadny vplyv.
+   Je to vhodné nakoľko nakoľko sa trojuholníky vyrátavajú paralélne. 
+
+4) Jakým způsobem zajišťujete ukládání trojúhelníků z několika vláken současně?
+
+   Trojuholníky sa ukladajú do kritickej sekcie (zdielaná premenná). Kritická sekcia zabezpečí že
+   prístup do nej v jednom okamihu má iba jeden proces.
+
+
+
+Úloha 3: Grafy škálování všech řešení
+===============================================================================
+
+1) Stručně zhodnoťte efektivitu vytvořených řešení (na základě grafů škálování).
+
+   Z grafu škálovania vzhľadom k veľkosti mriežky je vidno že pre dostatočne veľkú
+   mriežku je stromový algoritmus o niečo efektivnejší. No aj navzdory tomuto zisteniu
+   sa algoritmi javia ze ich efektivita je rádovo podobná. Zlom v rýchlosti nastáva
+   pri počte ~2^18.
+
+
+2) V jakém případě (v závislosti na počtu bodů ve vstupním souboru a velikosti 
+   mřížky) bude vaše řešení 1. úlohy neefektivní? (pokud takový případ existuje)
+
+   Prvé riešenie prejavuje zvýšenú neefektivitu pri vysokom počte jadier
+   a malej veľkosti vstupného súboru.
+
+3) Je (nebo není) stromový algoritmus efektivnější z pohledu slabého škálování 
+   vzhledem ke vstupu?
+
+   Stromový algoritmus nie je z pohľadu slabého škálovania efektivnejší
+   s ohľadom na vstup.
+
+
+
+Úloha 4: Analýza využití jader pomocí VTune
+================================================================================
+
+1) Jaké bylo průměrné využití jader pro všechny tři implementace s omezením na 
+   18 vláken? Na kolik procent byly využity?
+   
+   ref: 2.8%
+   loop: 47.6%
+   tree: 49.9%
+
+2) Jaké bylo průměrné využití jader pro všechny tři implementace s využitím 
+   všech jader? Na kolik procent se podařilo využít obě CPU?
+   
+   ref: 2.8%
+   loop: 86.1%
+   tree: 32.3%
+
+3) Jaké jsou závěry z těchto měření?
+   
+   Pri obmedzeni na 18 vlákien má lepšiu efektivitu implementaciá tree.
+   Pri použití 32 vlákien dominuje implementáciá loop, nakoľko v tree implementácií
+   je využitá pragma task wait a vlákna musia na seba čakať tak nemajú až takú 
+   efektivitu vyťaženia. 
